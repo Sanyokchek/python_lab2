@@ -127,7 +127,7 @@ gamehub-lab/
 
 ```bash
 git clone https://github.com/Sanyokchek/python_lab2.git
-cd gamehub-lab
+cd python_lab2
 ```
 
 
