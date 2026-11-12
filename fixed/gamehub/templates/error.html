@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Ошибка {{ code }} — GameHub{% endblock %}
+{% block content %}
+<section class="standalone-auth"><span class="eyebrow">GAMEHUB / ОШИБКА</span><h1>{{ code }}</h1><p>{{ message }}</p><a class="button button-dark" href="{{ url_for('index') }}">На главную</a></section>
+{% endblock %}

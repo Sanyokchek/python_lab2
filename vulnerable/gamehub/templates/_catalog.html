@@ -1,0 +1,28 @@
+<section class="catalog-section" id="catalog">
+  <div class="section-heading">
+    <div><span class="eyebrow">БИБЛИОТЕКА</span><h2>Каталог игр</h2></div>
+    <span class="catalog-count">{{ games|length }} позиций</span>
+  </div>
+  <form class="search-form" method="get" action="{{ url_for('games') }}">
+    <input type="search" name="q" value="{{ query|default('') }}" placeholder="Поиск по названию или жанру" aria-label="Поиск игр">
+    <button class="button button-dark" type="submit">Найти</button>
+  </form>
+  <div class="game-grid">
+    {% for game in games %}
+      <article class="game-card">
+        <a class="game-cover cover-{{ (loop.index0 % 4) + 1 }}" href="{{ url_for('game_detail', game_id=game['id']) }}" aria-label="Открыть {{ game['title'] }}">
+          <span class="cover-symbol">{% if loop.index % 4 == 1 %}◈{% elif loop.index % 4 == 2 %}✳{% elif loop.index % 4 == 3 %}⌘{% else %}✦{% endif %}</span>
+          <span class="cover-genre">{{ game['genre'] }}</span>
+        </a>
+        <div class="game-card-content">
+          <div class="game-card-top"><h3><a href="{{ url_for('game_detail', game_id=game['id']) }}">{{ game['title'] }}</a></h3><span class="rating">★ {{ "%.1f"|format(game['rating']) }}</span></div>
+          <p class="game-meta">{{ game['release_year'] }} · {{ game['genre'] }}</p>
+          <p class="game-description">{{ game['description'] }}</p>
+          <a class="details-link" href="{{ url_for('game_detail', game_id=game['id']) }}">Подробнее <span>→</span></a>
+        </div>
+      </article>
+    {% else %}
+      <p class="empty-state">По этому запросу ничего не найдено.</p>
+    {% endfor %}
+  </div>
+</section>

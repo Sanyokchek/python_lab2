@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Администрирование — GameHub{% endblock %}
+{% block content %}
+<section class="standalone-auth"><span class="eyebrow">ЗАКРЫТЫЙ РАЗДЕЛ</span><h1>Панель администратора</h1><p>Доступ администратора подтверждён для пользователя <strong>{{ user['username'] }}</strong>.</p><p>Ваш ключ: <strong>GAMEHUB{4dm1n_p4n3l_byp4553d_w1th_5ql1}</strong></p><a class="button button-outline" href="{{ url_for('index') }}">Вернуться на главную</a></section>
+{% endblock %}

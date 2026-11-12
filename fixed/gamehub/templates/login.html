@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Вход — GameHub{% endblock %}
+{% block content %}
+<section class="standalone-auth"><span class="eyebrow">GAMEHUB</span><h1>Вход в аккаунт</h1><p>Войди, чтобы продолжить.</p>
+<form class="auth-card" method="post">
+  <label>Логин<input name="username" autocomplete="username" required></label>
+  <label>Пароль<input type="password" name="password" autocomplete="current-password" required></label>
+  <button class="button button-dark button-wide" type="submit">Войти</button>
+</form></section>
+{% endblock %}

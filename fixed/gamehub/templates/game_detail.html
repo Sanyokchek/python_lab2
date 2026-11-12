@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ game['title'] }} — GameHub{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('index') }}#catalog">← Назад в каталог</a>
+<section class="detail-layout">
+  <div class="detail-cover cover-2"><span class="cover-symbol">✦</span><span class="cover-genre">{{ game['genre'] }}</span></div>
+  <div class="detail-copy"><span class="eyebrow">{{ game['release_year'] }} · {{ game['genre'] }}</span><h1>{{ game['title'] }}</h1><div class="detail-rating">★ {{ "%.1f"|format(game['rating']) }} <span>оценка сообщества</span></div><p>{{ game['description'] }}</p><a class="button button-dark" href="{{ url_for('download', filename='guide.txt') }}">Скачать руководство <span>↓</span></a></div>
+</section>
+<section class="reviews-section"><div class="section-heading"><div><span class="eyebrow">СООБЩЕСТВО</span><h2>Отзывы игроков</h2></div></div>
+  {% for review in reviews %}<article class="review-card"><div class="avatar">{{ review['username'][0]|upper }}</div><div class="review-body"><div class="review-top"><strong>{{ review['username'] }}</strong><span class="rating">★ {{ review['score'] }}/10</span></div><p>{{ review['body'] }}</p></div></article>
+  {% else %}<p class="empty-state">Пока нет отзывов для этой игры.</p>{% endfor %}
+</section>
+{% endblock %}

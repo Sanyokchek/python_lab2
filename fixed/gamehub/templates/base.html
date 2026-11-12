@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6fa">
+  <title>{% block title %}GameHub{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">G</span>GameHub</a>
+    <nav class="main-nav">
+      <a href="{{ url_for('index') }}#catalog">Каталог</a>
+      {% if logged_in_user %}
+        {% if logged_in_user['is_admin'] %}<a href="{{ url_for('admin') }}">Администрирование</a>{% endif %}
+        <span class="nav-user">{{ logged_in_user['username'] }}</span>
+        <form action="{{ url_for('logout') }}" method="post"><button class="nav-logout" type="submit">Выйти</button></form>
+      {% else %}
+        <a href="{{ url_for('index') }}#account">Войти</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="page-shell">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<p class="notice notice-{{ category }}">{{ message }}</p>{% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer"><span>GameHub</span><span>Локальный учебный проект</span></footer>
+</body>
+</html>

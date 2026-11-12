@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Каталог — GameHub{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('index') }}">← На главную</a>
+{% include "_catalog.html" %}
+{% endblock %}

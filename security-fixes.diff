@@ -1,0 +1,133 @@
+GameHub Security Lab — исправление уязвимостей SQL Injection и Path Traversal
+Patch applies with: git apply -p1 security-fixes.diff (from vulnerable/gamehub/)
+
+diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -1,20 +1,17 @@
+-"""GameHub Security Lab — УЯЗВИМАЯ версия (только для локального обучения).
+-
+-ВНИМАНИЕ! Этот файл намеренно содержит уязвимости:
+-  * SQL Injection в форме входа  (/login)
+-  * SQL Injection в поиске игр   (/games)
+-  * Path Traversal в скачивании  (/download/<path:filename>)
+-
+-Запускайте приложение только на 127.0.0.1 и только внутри учебной
+-виртуальной машины. Не используйте этот код вне лаборатории.
++"""GameHub Security Lab — ИСПРАВЛЕННАЯ версия (только для локального обучения).
++
++Отличия от уязвимой версии (см. security-fixes.diff):
++  * SQL-запросы параметризованы, ввод пользователя больше не склеивается с SQL;
++  * пароли хранятся как scrypt-хеш с солью и проверяются check_password_hash;
++  * скачивание нормализует путь и проверяет, что он остался внутри lab_data/public.
+ """
+ from pathlib import Path
+ import re
+-import hashlib
+ import os
+ import sqlite3
+ 
+ from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for, send_file
++from werkzeug.security import check_password_hash, generate_password_hash
+ 
+ BASE_DIR = Path(__file__).resolve().parent
+ DATABASE = BASE_DIR / "gamehub.sqlite3"
+@@ -26,8 +23,8 @@
+ 
+ 
+ def hash_password(password: str) -> str:
+-    """Учебный (намеренно слабый) вариант: sha256 без соли."""
+-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
++    """Пароль хранится как scrypt-хеш с индивидуальной солью."""
++    return generate_password_hash(password)
+ 
+ 
+ def get_db():
+@@ -109,17 +106,15 @@
+         username = request.form.get("username", "").strip()
+         password = request.form.get("password", "")
+ 
+-        # УЯЗВИМОСТЬ (SQL Injection): ввод пользователя склеивается с текстом
+-        # SQL-запроса, поэтому кавычка завершает строковый литерал, а `-- `
+-        # закомментирует оставшуюся часть условия.
+-        password_hash = hash_password(password)
+-        query = (
+-            f"SELECT id, username, is_admin FROM users "
+-            f"WHERE username = '{username}' AND password_hash = '{password_hash}'"
+-        )
+-        user = get_db().execute(query).fetchone()
+-
+-        if user is not None:
++        # ИСПРАВЛЕНО: параметризованный запрос. Имя пользователя передаётся
++        # отдельным параметром, поэтому кавычки и `-- ` внутри него остаются
++        # обычным текстом и не меняют структуру SQL-выражения.
++        user = get_db().execute(
++            "SELECT id, username, password_hash, is_admin FROM users WHERE username = ?",
++            (username,),
++        ).fetchone()
++
++        if user is not None and check_password_hash(user["password_hash"], password):
+             session.clear()
+             session["user_id"] = user["id"]
+             flash(f"Вход выполнен: {user['username']}", "success")
+@@ -145,13 +140,15 @@
+ def games():
+     query = request.args.get("q", "").strip()
+ 
+-    # УЯЗВИМОСТЬ (SQL Injection): поисковая строка попадает в SQL как есть.
+-    # Через UNION SELECT можно вывести данные из любой таблицы базы.
+-    sql = (
+-        f"SELECT id, title, genre, release_year, rating, description FROM games "
+-        f"WHERE title LIKE '%{query}%' OR genre LIKE '%{query}%'"
+-    )
+-    rows = get_db().execute(sql).fetchall()
++    # ИСПРАВЛЕНО: поисковая строка передаётся как параметр (LIKE-шаблон),
++    # а не вставляется в текст запроса. UNION и другие конструкции внутри
++    # `q` остаются данными.
++    pattern = f"%{query}%"
++    rows = get_db().execute(
++        "SELECT id, title, genre, release_year, rating, description FROM games "
++        "WHERE title LIKE ? OR genre LIKE ?",
++        (pattern, pattern),
++    ).fetchall()
+     return render_template("games.html", games=rows, query=query)
+ 
+ 
+@@ -171,17 +168,29 @@
+     return render_template("game_detail.html", game=game, reviews=reviews)
+ 
+ 
++def resolve_public_file(filename: str) -> Path | None:
++    """Возвращает путь к файлу, только если он лежит внутри PUBLIC_DIR."""
++    base = PUBLIC_DIR.resolve()
++    try:
++        candidate = (base / filename).resolve()
++    except (OSError, ValueError, RuntimeError):
++        return None
++    # is_relative_to покрывает и `../`, и абсолютные пути, и символические
++    # ссылки, ведущие за пределы каталога.
++    if candidate != base and not candidate.is_relative_to(base):
++        return None
++    return candidate
++
++
+ @app.route("/download/<path:filename>")
+ def download(filename):
+-    # УЯЗВИМОСТЬ (Path Traversal): имя файла из URL просто приклеивается
+-    # к каталогу lab_data/public. `../` выводит за его пределы, поэтому
+-    # можно прочитать любой файл, доступный процессу приложения.
+-    path = os.path.join(str(PUBLIC_DIR), filename)
+-    if not os.path.isfile(path):
++    # ИСПРАВЛЕНО: путь нормализуется (resolve) и проверяется на принадлежность
++    # каталогу lab_data/public. `../secret.txt`, абсолютные пути и ссылки
++    # за пределы каталога отдают 404.
++    path = resolve_public_file(filename)
++    if path is None or not path.is_file():
+         abort(404)
+-    return send_file(
+-        os.path.abspath(path), as_attachment=True, download_name=os.path.basename(path)
+-    )
++    return send_file(path, as_attachment=True, download_name=path.name)
+ 
+ 
+ @app.errorhandler(403)

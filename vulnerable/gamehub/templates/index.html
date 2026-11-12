@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}GameHub — игры и сообщество{% endblock %}
+{% block content %}
+<section class="welcome-row">
+  <div class="welcome-copy">
+    <span class="eyebrow">GAMEHUB / ИГРОВАЯ БИБЛИОТЕКА</span>
+    <h1>Игры, которые<br><span>стоит открыть.</span></h1>
+    <p>Изучай каталог, находи интересные проекты и сохраняй свою игровую коллекцию.</p>
+  </div>
+  <div class="welcome-decoration" aria-hidden="true"><span>G</span><i></i><b></b></div>
+</section>
+
+<section class="account-section" id="account">
+  {% if logged_in_user %}
+    <div class="signed-in-card">
+      <div><span class="eyebrow">ВАШ АККАУНТ</span><h2>С возвращением, {{ logged_in_user['username'] }}.</h2><p>Вы вошли в GameHub. Каталог доступен ниже.</p></div>
+      {% if logged_in_user['is_admin'] %}<a class="button button-outline" href="{{ url_for('admin') }}">Панель администратора</a>{% endif %}
+    </div>
+  {% else %}
+    <div class="section-heading account-heading"><div><span class="eyebrow">ПРИСОЕДИНЯЙСЯ</span><h2>Начни с аккаунта</h2></div><span class="muted-note">Вход или регистрация</span></div>
+    <div class="auth-grid">
+      <form class="auth-card" method="post" action="{{ url_for('login') }}">
+        <div class="auth-card-heading"><span class="auth-number">01</span><div><h3>Вход</h3><p>Уже есть аккаунт?</p></div></div>
+        <label>Логин<input name="username" autocomplete="username" placeholder="Ваш логин" required></label>
+        <label>Пароль<input type="password" name="password" autocomplete="current-password" placeholder="Ваш пароль" required></label>
+        <button class="button button-dark button-wide" type="submit">Войти в аккаунт <span>→</span></button>
+      </form>
+      <form class="auth-card auth-card-accent" method="post" action="{{ url_for('register') }}">
+        <div class="auth-card-heading"><span class="auth-number">02</span><div><h3>Регистрация</h3><p>Впервые на GameHub?</p></div></div>
+        <label>Придумай логин<input name="username" autocomplete="username" placeholder="От 3 до 24 символов" minlength="3" maxlength="24" required></label>
+        <label>Придумай пароль<input type="password" name="password" autocomplete="new-password" placeholder="Не менее 8 символов" minlength="8" required></label>
+        <button class="button button-accent button-wide" type="submit">Создать аккаунт <span>→</span></button>
+      </form>
+    </div>
+  {% endif %}
+</section>
+
+{% include "_catalog.html" %}
+{% endblock %}
