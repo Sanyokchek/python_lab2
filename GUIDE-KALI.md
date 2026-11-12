@@ -126,7 +126,7 @@ Use these credentials only in this local lab.
 ls -l lab_data/public lab_data/private
 cat lab_data/private/secret.txt
 # gamehub-internal
-# GAMEHUB{path_traversal_reached_private_file}
+# GAMEHUB{p4th_tr4v3rs4l_r34ch3d_pr1v4t3_f1l3}
 # Этот файл не должен скачиваться через /download.
 ```
 
@@ -644,7 +644,7 @@ curl -s -G "$BASE/games" \
   | grep -o "GAMEHUB{[^}]*}"
 ```
 
-Ожидаемо: `GAMEHUB{union_based_sqli_works}`.
+Ожидаемо: `GAMEHUB{un10n_b4s3d_5ql1_w0rk5}`.
 
 Если вместо этого пусто — проверьте по очереди:
 
